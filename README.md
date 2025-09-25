@@ -1,6 +1,6 @@
-# CMS Blog API
+# CV EVALUATOR API
 
-CMS sederhana untuk blog dengan fitur:
+CV Evaluator project dengan fitur:
 - Login
 - Upload CV
 - Evaluasi CV dengan AI
@@ -14,7 +14,7 @@ CMS sederhana untuk blog dengan fitur:
 1. Clone repo:
    ```bash
    git clone https://github.com/sudrajad02/cv-evaluator
-   cd cms-blog
+   cd cv-evaluator
    ```
 
 2. Install dependencies:
