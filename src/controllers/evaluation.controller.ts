@@ -1,26 +1,37 @@
 import { Request, Response } from "express";
 import * as evaluationService from "../services/evaluation.service";
+import { ApiResponse } from "../interfaces/api-response.interface";
 import { EvaluationResponse, EvaluationRequest } from "../interfaces/evaluation.interface";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 export const createEvaluation = async (
   req: Request<{}, {}, EvaluationRequest>,
-  res: Response
+  res: Response<ApiResponse<EvaluationResponse>>
 ) => {
   try {
     const evaluation = await evaluationService.createEvaluation(req.body);
-    return successResponse<EvaluationResponse>(res, evaluation, "Evaluation queued", 201);
-  } catch (err) {
-    return errorResponse(res, "Failed to create evaluation", 500, err);
+    return successResponse(res, evaluation, "Evaluation in progress", 200);
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };
 
-export const getEvaluation = async (req: Request<{ id: number }>, res: Response) => {
+export const getEvaluation = async (req: Request<{ id: string }>, res: Response<ApiResponse<EvaluationResponse>>) => {
   try {
-    const evaluation = await evaluationService.getEvaluation(req.params.id);
-    if (!evaluation) return errorResponse(res, "Evaluation not found", 404);
-    return successResponse<EvaluationResponse>(res, evaluation, "Evaluation retrieved");
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch evaluation", 500, err);
+    const id = parseInt(req.params.id)
+    const evaluation = await evaluationService.getEvaluation(id);
+    if (!evaluation) return errorResponse(res, "Not found", 404);
+
+    if (evaluation.status == "QUEUED" || evaluation.status == "PROCESSING") {
+      const minimalResult = {
+        id: evaluation.id,
+        status: evaluation.status,
+      };
+      return successResponse(res, minimalResult, "Evaluation in progress", 200);
+    }
+
+    return successResponse(res, evaluation, "Evaluation retrieved", 200);
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };
