@@ -1,9 +1,5 @@
 // src/config/database.ts
 import { PrismaClient } from '@prisma/client';
-import { getDatabaseURL } from '../utils/databaseConfig';
-
-// Set DATABASE_URL untuk Prisma
-process.env.DATABASE_URL = getDatabaseURL();
 
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' 
