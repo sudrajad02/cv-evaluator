@@ -26,6 +26,7 @@ databaseConnection();
 // Routes
 app.use(`/auth`, authRoutes);
 app.use(`${API_PREFIX}/jobs`, jobRoutes);
+app.use(`${API_PREFIX}/`, candidateRoutes);
 app.use(`${API_PREFIX}/candidates`, candidateRoutes);
 app.use(`${API_PREFIX}/evaluate`, evaluationRoutes);
 
