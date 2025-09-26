@@ -119,4 +119,4 @@ dist
 .pnp.*
 
 # upload file
-src/uploads
+src/uploads/*
