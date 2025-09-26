@@ -21,8 +21,8 @@ export const createCandidate = async (req: Request, res: Response<ApiResponse<Ca
     });
 
     return successResponse(res, candidate, "Candidate created", 201);
-  } catch (err) {
-    return errorResponse(res, "Failed to create candidate", 500, err);
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };
 
