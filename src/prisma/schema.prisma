@@ -8,9 +8,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-	id        Int      @id @default(autoincrement())
-    name	  String
-    username  String   @unique
-    password  String
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  username String   @unique
+  password String
+  role     String   @default("hr")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JobVacancy {
+  id             String       @id @default(uuid())
+  title          String
+  description    String
+  studyCaseBrief String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  evaluations    Evaluation[]
+}
+
+model Candidate {
+  id          String       @id @default(uuid())
+  name        String
+  email       String?      @unique
+  phone       String?
+  cvFile      String
+  projectFile String?
+  createdAt   DateTime     @default(now())
+  evaluations Evaluation[]
+}
+
+model Evaluation {
+  id              String     @id @default(uuid())
+  candidateId     String
+  jobId           String
+  status          EvaluationStatus @default(QUEUED)
+  cvMatchRate     Float?
+  cvFeedback      String?
+  projectScore    Float?
+  projectFeedback String?
+  overallSummary  String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  candidate Candidate  @relation(fields: [candidateId], references: [id])
+  job       JobVacancy @relation(fields: [jobId], references: [id])
+}
+
+enum EvaluationStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
 }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { ApiResponse } from '../utils/apiResponse';
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 declare module 'express' {
   interface Request {
@@ -13,7 +13,7 @@ export const authMiddleware = {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return ApiResponse.unauthorized(res, 'Authentication required');
+      return errorResponse(res, "Authentication required", 401);
     }
 
     try {
@@ -21,13 +21,13 @@ export const authMiddleware = {
       req.user = decoded;
       next();
     } catch (error) {
-      ApiResponse.unauthorized(res, 'Invalid token');
+      return errorResponse(res, "Invalid token", 401);
     }
   },
 
   authorizeSelf: (req: Request, res: Response, next: NextFunction) => {
     if (req.params.id !== req.user.id) {
-      return ApiResponse.forbidden(res, 'You can only access your own data');
+      return errorResponse(res, "You can only access your own data", 403);
     }
     next();
   }

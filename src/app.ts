@@ -4,6 +4,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import jobRoutes from "./routes/job.route";
+import candidateRoutes from "./routes/candidate.route";
+import evaluationRoutes from './routes/evaluation.route';
 import { databaseConnection } from './config/db';
 
 dotenv.config();
@@ -21,6 +24,9 @@ databaseConnection();
 
 // Routes
 app.use('/auth', authRoutes);
+app.use("/jobs", jobRoutes);
+app.use("/candidates", candidateRoutes);
+app.use("/evaluate", evaluationRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
