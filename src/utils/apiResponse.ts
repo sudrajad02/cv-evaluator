@@ -11,6 +11,7 @@ export function successResponse<T>(
   const response: ApiResponse<T> = {
     success: true,
     message,
+    code: statusCode,
     data,
   };
   return res.status(statusCode).json(response);
@@ -21,12 +22,13 @@ export function errorResponse(
   res: Response,
   message = "Something went wrong",
   statusCode = 500,
-  error?: any
+  error: any = null
 ) {
   const response: ApiResponse<null> = {
     success: false,
     message,
-    error,
+    code: statusCode,
+    error: error?.details || undefined,
   };
   return res.status(statusCode).json(response);
 }

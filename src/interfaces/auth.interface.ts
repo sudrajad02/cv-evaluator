@@ -12,6 +12,7 @@ export interface IUserResponse {
 }
   
 export interface ILoginResponse {
-  user: IUserResponse;
+  username: string;
+  expired_at?: string;
   token: string;
 }

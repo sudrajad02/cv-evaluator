@@ -1,11 +1,11 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import prisma  from '../config/db';
 import { ILoginRequest, ILoginResponse, IUserResponse } from '../interfaces/auth.interface';
 import { ApiError } from '../utils/apiError';
 
 export const AuthService = {
-  async login(request: ILoginRequest): Promise<{ user: IUserResponse; token: string }> {
+  async login(request: ILoginRequest): Promise<ILoginResponse> {
       const user = await prisma.user.findFirst({
         where: {
           OR: [
@@ -30,17 +30,15 @@ export const AuthService = {
       throw new ApiError(401, 'Incorrect username or password');
     }
 
-    const token = this.generateToken(user.id.toString());
+    const jwtToken = this.generateToken(user.id.toString());
+    
 
     // Update last login (optional)
 
     return {
-      user: {
-        id: user.id.toString(),
-        name: user.name,
-        username: user.username,
-      },
-      token
+      username: user.username,
+      expired_at: jwtToken.expiresAt,
+      token: jwtToken.token
     };
   },
 
@@ -49,16 +47,22 @@ export const AuthService = {
     console.log(`Token logged out: ${token}`);
   },
 
-  generateToken(userId: string): string {
+  generateToken(userId: string): {token: string, expiresAt: string} {
     if (!process.env.JWT_SECRET) {
       throw new ApiError(500, 'JWT secret not configured');
     }
 
-    return jwt.sign(
+    const expiresAt: string | number = process.env.JWT_EXPIRES_IN || '30m'
+    const token = jwt.sign(
       { id: userId },
       process.env.JWT_SECRET,
-      { expiresIn: '30m' }
+      { expiresIn: expiresAt } as SignOptions
     );
+
+    return {
+      token,
+      expiresAt
+    };
   },
 
   verifyToken(token: string): { id: string } {

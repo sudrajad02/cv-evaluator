@@ -10,11 +10,11 @@ export const AuthController = {
         password: req.body.password,
       };
 
-      const { user, token } = await AuthService.login(request);
+      const result = await AuthService.login(request);
 
-      return successResponse(res, { user, token }, "Login successful");
-    } catch (err) {
-      return errorResponse(res, "Login failed", 401, err);
+      return successResponse(res, result, "Login successful");
+    } catch (err: any) {
+      return errorResponse(res, err.message, 401);
     }
   },
 
@@ -26,8 +26,8 @@ export const AuthController = {
       }
 
       return successResponse(res, null, "Logout successful");
-    } catch (err) {
-      return errorResponse(res, "Logout failed", 500, err);
+    } catch (err: any) {
+      return errorResponse(res, err.message, 401);
     }
   },
 };
