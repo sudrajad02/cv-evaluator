@@ -1,18 +1,18 @@
 export interface EvaluationRequest {
-  candidateId: string;
-  jobId: string;
+  candidateId: number;
+  jobId: number;
 }
 
 export interface EvaluationResponse {
-  id: string;
-  candidateId: string;
-  jobId: string;
+  id: number;
+  candidateId: number;
+  jobId: number;
   status: "QUEUED" | "PROCESSING" | "COMPLETED";
   cvMatchRate: number | null;
   cvFeedback: string | null;
   projectScore: number | null;
   projectFeedback: string | null;
   overallSummary: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }

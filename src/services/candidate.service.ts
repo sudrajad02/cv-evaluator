@@ -11,6 +11,6 @@ export const listCandidates = async () => {
   return prisma.candidate.findMany();
 };
 
-export const getCandidate = async (id: string) => {
+export const getCandidate = async (id: number) => {
   return prisma.candidate.findUnique({ where: { id } });
 };

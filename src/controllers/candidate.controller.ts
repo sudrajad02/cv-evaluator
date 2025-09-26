@@ -34,7 +34,7 @@ export const listCandidates = async (_: Request, res: Response) => {
   }
 };
 
-export const getCandidate = async (req: Request<{ id: string }>, res: Response) => {
+export const getCandidate = async (req: Request<{ id: number }>, res: Response) => {
   try {
     const candidate = await candidateService.getCandidate(req.params.id);
     if (!candidate) return errorResponse(res, "Candidate not found", 404);

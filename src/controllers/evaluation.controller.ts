@@ -15,7 +15,7 @@ export const createEvaluation = async (
   }
 };
 
-export const getEvaluation = async (req: Request<{ id: string }>, res: Response) => {
+export const getEvaluation = async (req: Request<{ id: number }>, res: Response) => {
   try {
     const evaluation = await evaluationService.getEvaluation(req.params.id);
     if (!evaluation) return errorResponse(res, "Evaluation not found", 404);

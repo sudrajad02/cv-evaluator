@@ -11,6 +11,6 @@ export const listJobs = async () => {
   return prisma.jobVacancy.findMany();
 };
 
-export const getJob = async (id: string) => {
+export const getJob = async (id: number) => {
   return prisma.jobVacancy.findUnique({ where: { id } });
 };

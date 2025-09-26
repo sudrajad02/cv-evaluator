@@ -5,7 +5,7 @@ export interface JobRequest {
 }
 
 export interface JobResponse {
-  id: string;
+  id: number;
   title: string;
   description: string;
   studyCaseBrief: string;

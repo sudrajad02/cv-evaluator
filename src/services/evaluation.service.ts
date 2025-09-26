@@ -13,12 +13,12 @@ export const createEvaluation = async (data: EvaluationRequest) => {
   });
 };
 
-export const getEvaluation = async (id: string) => {
+export const getEvaluation = async (id: number) => {
   return prisma.evaluation.findUnique({ where: { id } });
 };
 
 // Dummy update evaluator: simulate async processing
-export const completeEvaluation = async (id: string) => {
+export const completeEvaluation = async (id: number) => {
   return prisma.evaluation.update({
     where: { id },
     data: {

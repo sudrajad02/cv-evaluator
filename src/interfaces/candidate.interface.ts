@@ -7,11 +7,11 @@ export interface CandidateRequest {
 }
 
 export interface CandidateResponse {
-  id: string;
+  id: number;
   name: string;
   email: string | null;
   phone: string | null;
   cvFile: string;
   projectFile: string | null;
-  createdAt: Date;
+  createdAt: Date | null;
 }

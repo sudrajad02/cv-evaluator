@@ -1,12 +1,12 @@
 -- CreateTable
 CREATE TABLE `User` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'hr',
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
 
     UNIQUE INDEX `User_username_key`(`username`),
     PRIMARY KEY (`id`)
@@ -14,43 +14,42 @@ CREATE TABLE `User` (
 
 -- CreateTable
 CREATE TABLE `JobVacancy` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
     `studyCaseBrief` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Candidate` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NULL,
     `phone` VARCHAR(191) NULL,
     `cvFile` VARCHAR(191) NOT NULL,
     `projectFile` VARCHAR(191) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `Candidate_email_key`(`email`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Evaluation` (
-    `id` VARCHAR(191) NOT NULL,
-    `candidateId` VARCHAR(191) NOT NULL,
-    `jobId` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `candidateId` INTEGER NOT NULL,
+    `jobId` INTEGER NOT NULL,
     `status` ENUM('QUEUED', 'PROCESSING', 'COMPLETED') NOT NULL DEFAULT 'QUEUED',
     `cvMatchRate` DOUBLE NULL,
     `cvFeedback` VARCHAR(191) NULL,
     `projectScore` DOUBLE NULL,
     `projectFeedback` VARCHAR(191) NULL,
     `overallSummary` VARCHAR(191) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

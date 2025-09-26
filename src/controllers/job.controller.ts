@@ -25,7 +25,7 @@ export const listJobs = async (_: Request, res: Response<ApiResponse<JobResponse
   }
 };
 
-export const getJob = async (req: Request<{ id: string }>, res: Response<ApiResponse<JobResponse>>) => {
+export const getJob = async (req: Request<{ id: number }>, res: Response<ApiResponse<JobResponse>>) => {
   try {
     const job = await jobService.getJob(req.params.id);
     if (!job) return errorResponse(res, "Job not found", 404);
