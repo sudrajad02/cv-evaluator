@@ -1,15 +1,16 @@
 import { Request, Response } from "express";
 import * as candidateService from "../services/candidate.service";
+import { ApiResponse } from "../interfaces/api-response.interface";
 import { CandidateResponse } from "../interfaces/candidate.interface";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
-export const createCandidate = async (req: Request, res: Response) => {
+export const createCandidate = async (req: Request, res: Response<ApiResponse<CandidateResponse>>) => {
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const { name, email, phone } = req.body;
 
-    const cvFile = files?.["cvFile"]?.[0]?.path || "";
-    const projectFile = files?.["projectFile"]?.[0]?.path || null;
+    const cvFile = files?.["cv_file"]?.[0]?.path || "";
+    const projectFile = files?.["project_file"]?.[0]?.path || null;
 
     const candidate = await candidateService.createCandidate({
       name,
@@ -19,27 +20,34 @@ export const createCandidate = async (req: Request, res: Response) => {
       projectFile,
     });
 
-    return successResponse<CandidateResponse>(res, candidate, "Candidate created", 201);
+    return successResponse(res, candidate, "Candidate created", 201);
   } catch (err) {
     return errorResponse(res, "Failed to create candidate", 500, err);
   }
 };
 
-export const listCandidates = async (_: Request, res: Response) => {
+export const listCandidates = async (req: Request, res: Response<ApiResponse<CandidateResponse>>) => {
   try {
     const candidates = await candidateService.listCandidates();
-    return successResponse<CandidateResponse[]>(res, candidates, "Candidates retrieved");
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch candidates", 500, err);
+    if (candidates.length == 0) {
+      return errorResponse(res, "Not found", 404);
+    }
+
+    return successResponse(res, candidates, "Candidates retrieved");
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };
 
-export const getCandidate = async (req: Request<{ id: number }>, res: Response) => {
+export const getCandidate = async (req: Request<{id: string}>, res: Response<ApiResponse<CandidateResponse>>) => {
   try {
-    const candidate = await candidateService.getCandidate(req.params.id);
-    if (!candidate) return errorResponse(res, "Candidate not found", 404);
-    return successResponse<CandidateResponse>(res, candidate, "Candidate retrieved");
-  } catch (err) {
-    return errorResponse(res, "Failed to fetch candidate", 500, err);
+    const id = parseInt(req.params.id)
+    const candidate = await candidateService.getCandidate(id);
+    
+    if (!candidate) return errorResponse(res, "Not found", 404)
+    
+    return successResponse(res, candidate, "Candidates retrieved");
+  } catch (err: any) {
+    return errorResponse(res, err.message, 500);
   }
 };

@@ -12,6 +12,7 @@ import { databaseConnection } from './config/db';
 dotenv.config();
 
 const app = express();
+const API_PREFIX = "/api/v1";
 
 // Middleware
 app.use(cors());
@@ -23,10 +24,10 @@ app.use(express.json());
 databaseConnection();
 
 // Routes
-app.use('/auth', authRoutes);
-app.use("/jobs", jobRoutes);
-app.use("/candidates", candidateRoutes);
-app.use("/evaluate", evaluationRoutes);
+app.use(`/auth`, authRoutes);
+app.use(`${API_PREFIX}/jobs`, jobRoutes);
+app.use(`${API_PREFIX}/candidates`, candidateRoutes);
+app.use(`${API_PREFIX}/evaluate`, evaluationRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

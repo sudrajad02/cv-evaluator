@@ -13,7 +13,7 @@ export const authMiddleware = {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return errorResponse(res, "Authentication required", 401);
+      return errorResponse(res, "Token required", 401);
     }
 
     try {

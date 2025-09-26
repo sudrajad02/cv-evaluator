@@ -12,5 +12,5 @@ export const listCandidates = async () => {
 };
 
 export const getCandidate = async (id: number) => {
-  return prisma.candidate.findUnique({ where: { id } });
+  return prisma.candidate.findFirst({ where: { id } });
 };
