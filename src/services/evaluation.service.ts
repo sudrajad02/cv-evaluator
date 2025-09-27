@@ -16,18 +16,3 @@ export const createEvaluation = async (data: EvaluationRequest) => {
 export const getEvaluation = async (id: number) => {
   return prisma.evaluation.findUnique({ where: { id } });
 };
-
-// Dummy update evaluator: simulate async processing
-export const completeEvaluation = async (id: number) => {
-  return prisma.evaluation.update({
-    where: { id },
-    data: {
-      status: EvaluationStatus.COMPLETED,
-      cvMatchRate: Math.random().toFixed(2) as unknown as number,
-      cvFeedback: "Strong backend experience, needs more AI exposure.",
-      projectScore: 7.5,
-      projectFeedback: "Meets chaining requirements, limited error handling.",
-      overallSummary: "Good candidate fit, recommend for shortlist.",
-    },
-  });
-};

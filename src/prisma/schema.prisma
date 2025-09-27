@@ -62,4 +62,5 @@ enum EvaluationStatus {
   QUEUED
   PROCESSING
   COMPLETED
+  FAILED
 }
