@@ -3,13 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { callChat, createEmbedding } from "../utils/openRouter";
 import { upsertJobToVector } from "./rag.service";
+import { readFileContent } from "../utils/fileReader";
 
 const prisma = new PrismaClient();
-
-// Qdrant vector DB
-const qdrant = new QdrantClient({
-  url: process.env.QDRANT_URL || "http://localhost:6333",
-});
 
 export class EvaluationPipeline {
   static async run(evaluationId: number) {
@@ -26,9 +22,18 @@ export class EvaluationPipeline {
 
     const { candidate, job } = evaluation;
 
+    // read content from path
+    const cvContent = candidate.cvFile 
+      ? await readFileContent(candidate.cvFile)
+      : '';
+    
+    const projectContent = candidate.projectFile 
+      ? await readFileContent(candidate.projectFile)
+      : '';
+
     // validation
-    const hasValidCV = candidate.cvFile && candidate.cvFile.trim().length > 50;
-    const hasValidProject = candidate.projectFile && candidate.projectFile.trim().length > 50;
+    const hasValidCV = cvContent && cvContent.trim().length > 50;
+    const hasValidProject = projectContent && projectContent.trim().length > 50;
     const hasValidJob = job.description && job.description.trim().length > 50;
 
     if (!hasValidCV || !hasValidProject || !hasValidJob) {
@@ -73,10 +78,10 @@ CRITICAL INSTRUCTIONS:
 ${job.description || 'No job description provided'}
 
 **Candidate CV Content:**
-${candidate.cvFile || 'No CV content provided'}
+${cvContent || 'No CV content provided'}
 
 **Project Report Content:**
-${candidate.projectFile || 'No project report provided'}
+${projectContent || 'No project report provided'}
 
 ### VALIDATION CHECKS:
 Before proceeding with evaluation, check:
@@ -151,9 +156,6 @@ Return ONLY valid JSON with this exact schema. Do not include any text before or
         console.log("[LLM Generate Error]")
         return
     }
-
-    console.log(111, result);
-    
 
     // 4. Simpan hasil scoring ke DB
     try {
