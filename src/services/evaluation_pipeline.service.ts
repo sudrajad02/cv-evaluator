@@ -42,35 +42,31 @@ export class EvaluationPipeline {
 
     // 2. Buat prompt untuk LLM
     const prompt = `
-You are an expert technical evaluator. You must STRICTLY evaluate based ONLY on the actual content provided.
+You are an expert technical evaluator for recruitment following the official scoring rubric.
 
-CRITICAL INSTRUCTIONS:
-1. If any input (CV or Project Report) is empty, null, or contains no meaningful content, you MUST set all related scores to 1 and clearly state "No content provided" in the reason.
-2. Base your evaluation ONLY on what is explicitly written in the provided content.
-3. Do NOT make assumptions or fill gaps with generic positive statements.
-4. If content is insufficient for proper evaluation, reflect this in low scores and clear reasoning.
+### EVALUATION CRITERIA (Scale 1-5 for each parameter)
 
-### EVALUATION CRITERIA
+#### CV Match Evaluation
+- **Technical Skills Match (40%)**: Alignment with job requirements (backend, databases, APIs, cloud, AI/LLM)
+  - 1 = Irrelevant skills, 2 = Few overlaps, 3 = Partial match, 4 = Strong match, 5 = Excellent match + AI/LLM exposure
+- **Experience Level (25%)**: Years of experience and project complexity
+  - 1 = <1 yr/trivial projects, 2 = 1-2 yrs, 3 = 2-3 yrs with mid-scale projects, 4 = 3-4 yrs solid track record, 5 = 5+ yrs/high-impact projects
+- **Relevant Achievements (20%)**: Impact of past work (scaling, performance, adoption)
+  - 1 = No clear achievements, 2 = Minimal improvements, 3 = Some measurable outcomes, 4 = Significant contributions, 5 = Major measurable impact
+- **Cultural/Collaboration Fit (15%)**: Communication, learning mindset, teamwork/leadership
+  - 1 = Not demonstrated, 2 = Minimal, 3 = Average, 4 = Good, 5 = Excellent and well-demonstrated
 
-#### CV Match Evaluation (Weight: 100%)
-- **Technical Skills Match (40%)**: Direct match between candidate's listed technical skills and job requirements
-- **Experience Level (25%)**: Years of experience and seniority level alignment with job requirements  
-- **Relevant Achievements (20%)**: Specific accomplishments that demonstrate job-relevant capabilities
-- **Cultural/Collaboration Fit (15%)**: Evidence of teamwork, communication, and cultural alignment
-
-#### Project Deliverable Evaluation (Weight: 100%)
-- **Correctness (30%)**: Solution correctly addresses the given prompt and requirements
-- **Code Quality & Structure (25%)**: Clean, maintainable, well-organized code following best practices
-- **Resilience & Error Handling (20%)**: Proper error handling, input validation, edge case management
-- **Documentation & Explanation (15%)**: Clear documentation, comments, and explanation of approach
-- **Creativity/Bonus (10%)**: Innovative solutions, additional features, or exceptional implementation
-
-### SCORING GUIDELINES:
-- **Score 5**: Exceptional - Exceeds expectations significantly
-- **Score 4**: Strong - Meets expectations with some excellence
-- **Score 3**: Adequate - Meets basic expectations
-- **Score 2**: Below Average - Partially meets expectations with notable gaps
-- **Score 1**: Poor - Does not meet expectations or no content provided
+#### Project Deliverable Evaluation
+- **Correctness (Prompt & Chaining) (30%)**: Implements prompt design, LLM chaining, RAG context injection
+  - 1 = Not implemented, 2 = Minimal attempt, 3 = Works partially, 4 = Works correctly, 5 = Fully correct + thoughtful
+- **Code Quality & Structure (25%)**: Clean, modular, reusable, tested
+  - 1 = Poor, 2 = Some structure, 3 = Decent modularity, 4 = Good structure + some tests, 5 = Excellent quality + strong tests
+- **Resilience & Error Handling (20%)**: Handles long jobs, retries, randomness, API failures
+  - 1 = Missing, 2 = Minimal, 3 = Partial handling, 4 = Solid handling, 5 = Robust, production-ready
+- **Documentation & Explanation (15%)**: README clarity, setup instructions, trade-off explanations
+  - 1 = Missing, 2 = Minimal, 3 = Adequate, 4 = Clear, 5 = Excellent + insightful
+- **Creativity/Bonus (10%)**: Extra features beyond requirements
+  - 1 = None, 2 = Very basic, 3 = Useful extras, 4 = Strong enhancements, 5 = Outstanding creativity
 
 ### INPUTS TO EVALUATE:
 
@@ -83,64 +79,56 @@ ${cvContent || 'No CV content provided'}
 **Project Report Content:**
 ${projectContent || 'No project report provided'}
 
-### VALIDATION CHECKS:
-Before proceeding with evaluation, check:
-1. Is the job description meaningful and detailed? 
-2. Does the CV contain actual resume content (skills, experience, education)?
-3. Does the project report contain actual project work (code, documentation, explanation)?
-
-If any of these are missing or insufficient, reflect this accurately in your scoring and reasoning.
-
 ### OUTPUT REQUIREMENTS:
-Return ONLY valid JSON with this exact schema. Do not include any text before or after the JSON:
+Return ONLY valid JSON with this exact schema:
 
 {
   "cv": {
     "technicalSkills": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual CV content vs job requirements" 
+      "reason": "Specific explanation based on CV content vs job requirements" 
     },
     "experienceLevel": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual experience vs job requirements" 
+      "reason": "Specific explanation based on experience level" 
     },
     "achievements": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual achievements mentioned" 
+      "reason": "Specific explanation based on achievements mentioned" 
     },
     "collaborationFit": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual collaboration evidence" 
+      "reason": "Specific explanation based on collaboration evidence" 
     },
     "weightedScore": number (calculated: technicalSkills*0.4 + experienceLevel*0.25 + achievements*0.2 + collaborationFit*0.15),
-    "matchRate": number (percentage: weightedScore/5 * 100),
-    "feedback": "3-5 sentences summarizing CV evaluation, highlighting key strengths and areas for improvement based on actual content provided. If no content available, clearly state this limitation."
+    "matchRate": number (percentage: weightedScore * 20),
+    "feedback": "3-5 sentences highlighting strengths and improvement areas"
   },
   "project": {
     "correctness": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual project solution" 
+      "reason": "Specific explanation of prompt design and LLM implementation" 
     },
     "codeQuality": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual code structure and practices" 
+      "reason": "Specific explanation of code structure and practices" 
     },
     "resilience": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual error handling implementation" 
+      "reason": "Specific explanation of error handling and robustness" 
     },
     "documentation": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual documentation quality" 
+      "reason": "Specific explanation of documentation quality" 
     },
     "creativity": { 
       "score": number (1-5), 
-      "reason": "Specific explanation based on actual innovative elements" 
+      "reason": "Specific explanation of extra features and creativity" 
     },
     "weightedScore": number (calculated: correctness*0.3 + codeQuality*0.25 + resilience*0.2 + documentation*0.15 + creativity*0.1),
-    "feedback": "3-5 sentences summarizing project evaluation, highlighting technical strengths and areas needing improvement based on actual implementation provided. If no content available, clearly state this limitation."
+    "feedback": "3-5 sentences on technical implementation and areas for improvement"
   },
-  "summary": "3-5 sentences providing honest assessment based on actual content provided. If content is missing or insufficient, clearly state this limitation."
+  "summary": "3-5 sentences providing overall assessment with strengths, gaps, and recommendations"
 }
 `;
 
