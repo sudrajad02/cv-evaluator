@@ -1,0 +1,47 @@
+PROYEK: Website Sekolah
+Siswa PKL | SMK Teknik Komputer | 2021
+
+DESKRIPSI PROYEK
+Waktu PKL di SMK saya disuruh bikin website untuk sekolah. Saya bingung karena belum pernah bikin website beneran. Guru bilang harus ada halaman home, profil sekolah, dan kontak.
+
+APA YANG SAYA KERJAKAN
+Saya cari di Google cara bikin website. Ketemu tutorial di YouTube tentang HTML. Tapi susah banget jadi saya download template gratis dari internet.
+
+Template yang saya pakai warna biru dan ada gambar sekolah. Saya ganti tulisannya jadi nama sekolah saya dan alamatnya. Foto-foto saya ganti pake foto sekolah yang saya ambil dari Facebook sekolah.
+
+Website punya halaman:
+- Beranda (home) - ada foto sekolah dan sambutan kepala sekolah
+- Tentang Kami - cerita sekolah yang saya copy dari brosur
+- Fasilitas - foto-foto ruang kelas dan lab
+- Kontak - alamat dan nomor telepon sekolah
+
+MASALAH YANG SAYA HADAPI
+Banyak banget masalahnya:
+1. Saya ga ngerti HTML dan CSS jadi susah edit template
+2. Gambar sering ga keluar atau terlalu besar
+3. Tulisan suka berantakan kalau dibuka di HP
+4. Warna background ga bisa diganti
+5. Guru minta ada form pendaftaran tapi saya ga tau caranya
+
+Saya minta bantuan teman yang lebih pinter tapi dia juga ga tau. Akhirnya saya tinggalin aja begitu karena deadline udah mau habis.
+
+HASIL
+Website jadi sih tapi jelek banget. Guru bilang "lumayan lah buat pemula" tapi saya tau dia cuma kasihan. Website cuma bisa dibuka di komputer, kalau di HP hancur tampilannya.
+
+Saya upload ke hosting gratis yang dikasih sekolah. Tapi sekarang udah ga bisa dibuka karena hostingnya expired dan saya lupa password.
+
+YANG SAYA PELAJARI
+Bikin website itu susah banget. Saya mikir tinggal drag and drop kayak PowerPoint ternyata harus coding. Saya jadi tau HTML itu bahasa pemrograman (tapi tetep ga ngerti).
+
+Saya sadar saya harus belajar lebih banyak kalau mau jadi programmer beneran. Tapi susah karena ga ada yang ngajarin dan internet di rumah lemot.
+
+TOOLS YANG DIPAKAI
+- Notepad buat edit HTML (ga tau ada software lain)
+- Google Chrome buat testing
+- Copy paste dari internet
+- Template gratis dari templatemo.com
+- Foto dari Facebook dan Google
+
+Proyek ini bikin saya stress tapi setidaknya saya udah coba. Mungkin kalau ada kesempatan kerja saya bisa belajar lagi dari yang lebih expert.
+
+LINK: udah ga bisa dibuka karena hosting expired
