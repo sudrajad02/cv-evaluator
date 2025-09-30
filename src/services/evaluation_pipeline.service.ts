@@ -1,75 +1,190 @@
 import { PrismaClient } from "@prisma/client";
 import { callChat, createEmbedding } from "../utils/openRouter";
-import { upsertJobToVector } from "./rag.service";
+import { upsertJobToVector, searchSimilarVectors } from "./rag.service";
 import { readFileContent } from "../utils/fileReader";
 
 const prisma = new PrismaClient();
 
 export class EvaluationPipeline {
-  static async run(evaluationId: number) {
-    // 1. get data evaluation
-    const evaluation = await prisma.evaluation.findUnique({
-      where: { id: evaluationId },
-      include: {
-        candidate: true,
-        job: true,
-      },
+  
+  // save job description & rubric to vector DB
+  static async storeJobAndRubric(jobId: number) {
+    const job = await prisma.jobVacancy.findUnique({
+      where: { id: jobId }
     });
 
-    if (!evaluation) throw new Error("Evaluation not found");
+    if (!job) throw new Error("Job not found");
 
-    const { candidate, job } = evaluation;
-
-    // read content from path
-    const cvContent = candidate.cvFile 
-      ? await readFileContent(candidate.cvFile)
-      : '';
+    // scoring rubric template
+    const scoringRubric = `
+    SCORING RUBRIC FOR ${job.title}:
     
-    const projectContent = candidate.projectFile 
-      ? await readFileContent(candidate.projectFile)
-      : '';
+    CV EVALUATION CRITERIA:
+    - Technical Skills Match (40%): Evaluate based on job requirements and description
+    - Experience Level (25%): Assess relevant work experience and project history
+    - Relevant Achievements (20%): Impact and measurable outcomes from past work
+    - Cultural/Collaboration Fit (15%): Communication skills and teamwork indicators
+    
+    PROJECT EVALUATION CRITERIA:
+    - Correctness (30%): LLM implementation, prompt design, RAG implementation
+    - Code Quality (25%): Structure, modularity, testing, best practices
+    - Resilience (20%): Error handling, edge cases, production readiness
+    - Documentation (15%): README clarity, setup instructions, code comments
+    - Creativity (10%): Extra features beyond basic requirements
+    
+    JOB POSITION: ${job.title}
+    
+    JOB REQUIREMENTS & DESCRIPTION:
+    ${job.description}
+    
+    STUDY CASE BRIEF:
+    ${job.studyCaseBrief}
+    `;
 
-    // validation
-    const hasValidCV = cvContent && cvContent.trim().length > 50;
-    const hasValidProject = projectContent && projectContent.trim().length > 50;
-    const hasValidJob = job.description && job.description.trim().length > 50;
+    // create embeddings for job title, description, and study case brief
+    const jobContent = `
+    Job Title: ${job.title}
+    
+    Job Description: ${job.description}
+    
+    Study Case Brief: ${job.studyCaseBrief}
+    `;
 
-    if (!hasValidCV || !hasValidProject || !hasValidJob) {
-    console.warn(`Missing content - CV: ${hasValidCV}, Project: ${hasValidProject}, Job: ${hasValidJob}`);
-    }
+    const jobEmbedding = await createEmbedding(
+      process.env.COHERE_MODEL_EMBED as string,
+      `JOB_DESC: ${jobContent}`
+    );
 
-    // 2. create prompt for LLM
-    const prompt = `
-You are an expert technical evaluator for recruitment following the official scoring rubric.
+    // create embeddings untuk scoring rubric
+    const rubricEmbedding = await createEmbedding(
+      process.env.COHERE_MODEL_EMBED as string,
+      `SCORING_RUBRIC: ${scoringRubric}`
+    );
+
+    await upsertJobToVector(
+      `job_desc_${jobId}`,
+      jobContent,
+      jobEmbedding.embeddings.float[0],
+      { 
+        type: 'job_description', 
+        jobId,
+        title: job.title,
+        createdAt: job.createdAt?.toISOString(),
+        updatedAt: job.updatedAt?.toISOString()
+      }
+    );
+
+    await upsertJobToVector(
+      `rubric_${jobId}`,
+      scoringRubric,
+      rubricEmbedding.embeddings.float[0],
+      { 
+        type: 'scoring_rubric', 
+        jobId,
+        title: job.title,
+        createdAt: job.createdAt?.toISOString(),
+        updatedAt: job.updatedAt?.toISOString()
+      }
+    );
+
+    console.log(`✅ Stored job description and rubric for: ${job.title} (ID: ${jobId})`);
+  }
+
+
+  // method for retrieve relevant context
+  static async getRelevantContext(query: string, jobId: number) {
+    const queryEmbedding = await createEmbedding(
+      process.env.COHERE_MODEL_EMBED as string,
+      query
+    );
+
+    // search for relevant job descriptions and rubrics
+    const relevantContexts = await searchSimilarVectors(
+      queryEmbedding.embeddings.float[0],
+      5,
+      { jobId }
+    );
+
+    return relevantContexts;
+  }
+
+  static async run(evaluationId: number) {
+    // 1. Get evaluation data
+  const evaluation = await prisma.evaluation.findUnique({
+    where: { id: evaluationId },
+    include: {
+      candidate: true,
+      job: true,
+    },
+  });
+
+  if (!evaluation) throw new Error("Evaluation not found");
+  const { candidate, job } = evaluation;
+
+  // 2. Ensure job and rubric are stored in vector DB
+  await this.storeJobAndRubric(job.id);
+
+  // Read content from files
+  const cvContent = candidate.cvFile 
+    ? await readFileContent(candidate.cvFile)
+    : '';
+  
+  const projectContent = candidate.projectFile 
+    ? await readFileContent(candidate.projectFile)
+    : '';
+
+  // Validation
+  const hasValidCV = cvContent && cvContent.trim().length > 50;
+  const hasValidProject = projectContent && projectContent.trim().length > 50;
+  const hasValidJob = job.description && job.description.trim().length > 50;
+  const hasValidStudyCase = job.studyCaseBrief && job.studyCaseBrief.trim().length > 50;
+
+  if (!hasValidCV || !hasValidProject || !hasValidJob) {
+    console.warn(`Missing content - CV: ${hasValidCV}, Project: ${hasValidProject}, Job: ${hasValidJob}, StudyCase: ${hasValidStudyCase}`);
+  }
+
+  // 3. Retrieve relevant context for CV evaluation
+  const cvContext = await this.getRelevantContext(
+    `CV evaluation for ${job.title}: ${cvContent.substring(0, 500)}`,
+    job.id
+  );
+
+  // 4. Retrieve relevant context for project evaluation  
+  const projectContext = await this.getRelevantContext(
+    `Project evaluation for ${job.title} study case: ${job.studyCaseBrief.substring(0, 300)} - Project: ${projectContent.substring(0, 500)}`,
+    job.id
+  );
+
+  // 5. Create dynamic prompt with retrieved context
+  const prompt = `
+You are an expert technical evaluator for recruitment.
+
+### RETRIEVED RELEVANT CONTEXT:
+${cvContext.map(ctx => ctx.content).join('\n\n')}
+${projectContext.map(ctx => ctx.content).join('\n\n')}
+
+### JOB POSITION: ${job.title}
+
+### STUDY CASE BRIEF:
+${job.studyCaseBrief}
 
 ### EVALUATION CRITERIA (Scale 1-5 for each parameter)
+[Use the scoring rubric from the retrieved context above]
 
 #### CV Match Evaluation
-- **Technical Skills Match (40%)**: Alignment with job requirements (backend, databases, APIs, cloud, AI/LLM)
-  - 1 = Irrelevant skills, 2 = Few overlaps, 3 = Partial match, 4 = Strong match, 5 = Excellent match + AI/LLM exposure
-- **Experience Level (25%)**: Years of experience and project complexity
-  - 1 = <1 yr/trivial projects, 2 = 1-2 yrs, 3 = 2-3 yrs with mid-scale projects, 4 = 3-4 yrs solid track record, 5 = 5+ yrs/high-impact projects
-- **Relevant Achievements (20%)**: Impact of past work (scaling, performance, adoption)
-  - 1 = No clear achievements, 2 = Minimal improvements, 3 = Some measurable outcomes, 4 = Significant contributions, 5 = Major measurable impact
-- **Cultural/Collaboration Fit (15%)**: Communication, learning mindset, teamwork/leadership
-  - 1 = Not demonstrated, 2 = Minimal, 3 = Average, 4 = Good, 5 = Excellent and well-demonstrated
+- **Technical Skills Match (40%)**: Based on job requirements retrieved above
+- **Experience Level (25%)**: Based on experience requirements in context
+- **Relevant Achievements (20%)**: Impact of past work
+- **Cultural/Collaboration Fit (15%)**: Communication, learning mindset
 
-#### Project Deliverable Evaluation
-- **Correctness (Prompt & Chaining) (30%)**: Implements prompt design, LLM chaining, RAG context injection
-  - 1 = Not implemented, 2 = Minimal attempt, 3 = Works partially, 4 = Works correctly, 5 = Fully correct + thoughtful
-- **Code Quality & Structure (25%)**: Clean, modular, reusable, tested
-  - 1 = Poor, 2 = Some structure, 3 = Decent modularity, 4 = Good structure + some tests, 5 = Excellent quality + strong tests
-- **Resilience & Error Handling (20%)**: Handles long jobs, retries, randomness, API failures
-  - 1 = Missing, 2 = Minimal, 3 = Partial handling, 4 = Solid handling, 5 = Robust, production-ready
-- **Documentation & Explanation (15%)**: README clarity, setup instructions, trade-off explanations
-  - 1 = Missing, 2 = Minimal, 3 = Adequate, 4 = Clear, 5 = Excellent + insightful
-- **Creativity/Bonus (10%)**: Extra features beyond requirements
-  - 1 = None, 2 = Very basic, 3 = Useful extras, 4 = Strong enhancements, 5 = Outstanding creativity
+#### Project Deliverable Evaluation  
+- **Correctness (30%)**: LLM implementation, prompt design, RAG
+- **Code Quality (25%)**: Clean, modular, tested code
+- **Resilience (20%)**: Error handling, production readiness
+- **Documentation (15%)**: README clarity, setup instructions
+- **Creativity (10%)**: Extra features beyond requirements
 
 ### INPUTS TO EVALUATE:
-
-**Job Description:**
-${job.description || 'No job description provided'}
 
 **Candidate CV Content:**
 ${cvContent || 'No CV content provided'}
@@ -79,106 +194,86 @@ ${projectContent || 'No project report provided'}
 
 ### OUTPUT REQUIREMENTS:
 Return ONLY valid JSON with this exact schema:
-
 {
   "cv": {
-    "technicalSkills": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation based on CV content vs job requirements" 
-    },
-    "experienceLevel": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation based on experience level" 
-    },
-    "achievements": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation based on achievements mentioned" 
-    },
-    "collaborationFit": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation based on collaboration evidence" 
-    },
-    "weightedScore": number (calculated: technicalSkills*0.4 + experienceLevel*0.25 + achievements*0.2 + collaborationFit*0.15),
-    "matchRate": number (percentage: weightedScore * 20),
-    "feedback": "3-5 sentences highlighting strengths and improvement areas"
+    "technicalSkills": { "score": number (1-5), "reason": "explanation" },
+    "experienceLevel": { "score": number (1-5), "reason": "explanation" },
+    "achievements": { "score": number (1-5), "reason": "explanation" },
+    "collaborationFit": { "score": number (1-5), "reason": "explanation" },
+    "weightedScore": number,
+    "matchRate": number,
+    "feedback": "3-5 sentences"
   },
   "project": {
-    "correctness": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation of prompt design and LLM implementation" 
-    },
-    "codeQuality": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation of code structure and practices" 
-    },
-    "resilience": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation of error handling and robustness" 
-    },
-    "documentation": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation of documentation quality" 
-    },
-    "creativity": { 
-      "score": number (1-5), 
-      "reason": "Specific explanation of extra features and creativity" 
-    },
-    "weightedScore": number (calculated: correctness*0.3 + codeQuality*0.25 + resilience*0.2 + documentation*0.15 + creativity*0.1),
-    "feedback": "3-5 sentences on technical implementation and areas for improvement"
+    "correctness": { "score": number (1-5), "reason": "explanation" },
+    "codeQuality": { "score": number (1-5), "reason": "explanation" },
+    "resilience": { "score": number (1-5), "reason": "explanation" },
+    "documentation": { "score": number (1-5), "reason": "explanation" },
+    "creativity": { "score": number (1-5), "reason": "explanation" },
+    "weightedScore": number,
+    "feedback": "3-5 sentences"
   },
-  "summary": "3-5 sentences providing overall assessment with strengths, gaps, and recommendations"
+  "summary": "3-5 sentences overall assessment"
 }
 `;
 
-    // 3. callback OpenRouter (LLM)
-    let result
+    // 5. Call LLM with enhanced context
+    let result;
     try {
-        const response = await callChat(
-            process.env.OPENROUTER_MODEL as string,
-            [{ role: "user", content: prompt }]
-        );
-        result = JSON.parse(response);
+      const response = await callChat(
+        process.env.OPENROUTER_MODEL as string,
+        [{ role: "user", content: prompt }]
+      );
+      result = JSON.parse(response);
     } catch (error) {
-        console.log("[LLM Generate Error]")
-        return
+      console.log("[LLM Generate Error]", error);
+      return;
     }
 
-    // 4. save result scoring ke DB
+    // 6. Save evaluation results to DB
     try {
-        const update_eval = await prisma.evaluation.update({
-            where: { id: evaluationId },
-            data: {
-                status: "COMPLETED",
-                cvMatchRate: result.cv?.matchRate || 0,
-                cvFeedback: result.cv?.feedback || "",
-                projectScore: result.project?.weightedScore || 0,
-                projectFeedback: result.project?.feedback || "",
-                overallSummary: result.summary || "",
-            },
-        });
-        console.log(update_eval);
+      const update_eval = await prisma.evaluation.update({
+        where: { id: evaluationId },
+        data: {
+          status: "COMPLETED",
+          cvMatchRate: result.cv?.matchRate || 0,
+          cvFeedback: result.cv?.feedback || "",
+          projectScore: result.project?.weightedScore || 0,
+          projectFeedback: result.project?.feedback || "",
+          overallSummary: result.summary || "",
+        },
+      });
+      console.log(update_eval);
     } catch (error) {
-        console.log("[Prisma Update Error]", error);
-        return
+      console.log("[Prisma Update Error]", error);
+      return;
     }
 
-    // 5. save to Qdrant for RAG future retrieval
+    // 🆕 7. Store evaluation result with enhanced metadata
     try {
-        const embedding = await createEmbedding(
-            process.env.COHERE_MODEL_EMBED as string,
-            JSON.stringify(result)
-        )
+      const resultEmbedding = await createEmbedding(
+        process.env.COHERE_MODEL_EMBED as string,
+        `EVALUATION_RESULT: ${JSON.stringify(result)}`
+      );
 
-        const save_qdrant = await upsertJobToVector(
-            embedding.id,
-            `Embedding For Job ${job.title} and For Candidate ${candidate.name}`,
-            embedding.embeddings.float[0]
-        );
+      await upsertJobToVector(
+        `eval_${evaluationId}`,
+        `Evaluation Result: ${job.title} - ${candidate.name}`,
+        resultEmbedding.embeddings.float[0],
+        { 
+          type: 'evaluation_result', 
+          jobId: job.id, 
+          candidateId: candidate.id,
+          evaluationId,
+          cvMatchRate: result.cv?.matchRate,
+          projectScore: result.project?.weightedScore
+        }
+      );
 
-        console.log(save_qdrant);
+      console.log("Evaluation result stored in vector DB");
     } catch (error) {
-        console.log("[Qdrant Save Error]", error);
-        return
+      console.log("[Qdrant Save Error]", error);
+      return;
     }
   }
 }
