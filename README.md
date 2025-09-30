@@ -26,7 +26,7 @@ CV Evaluator project dengan fitur:
    npm install
    ```
 
-3. Copy file `.env` dari `.env.sample` kemudian edit dengan sesuai kebutuhan:
+3. Copy file `.env` dari `.env.sample` kemudian edit dengan sesuai kebutuhan
 
 4. Jalankan:
    ```bash
@@ -45,14 +45,14 @@ CV Evaluator project dengan fitur:
    ```
 
 ## **Endpoint**
-1. Endpoint Utama
+## 1. Endpoint Utama
 | Method | Endpoint                     | Deskripsi                                 |
 |--------|------------------------------|-------------------------------------------|
 | POST   | /api/v1/upload               | Create kandidat hanya file CV dan Project |
 | POST   | /api/v1/evaluate             | Evaluasi dari CV ke LLM                   |
 | GET    | /api/v1/evaluate/result/:id  | Hasil dari evaluasi                       |
 
-2. Endpoint Tambahan
+## 2. Endpoint Tambahan
 | Method | Endpoint               | Deskripsi                    |
 |--------|------------------------|------------------------------|
 | POST   | /api/v1/auth/login     | Login user                   |
