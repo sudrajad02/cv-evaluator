@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { successResponse, errorResponse } from "../utils/apiResponse";
+import { errorResponse } from "../utils/apiResponse";
 
 declare module 'express' {
   interface Request {

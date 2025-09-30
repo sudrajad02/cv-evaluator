@@ -1,6 +1,4 @@
-// src/services/evaluation_pipeline.service.ts
 import { PrismaClient } from "@prisma/client";
-import { QdrantClient } from "@qdrant/js-client-rest";
 import { callChat, createEmbedding } from "../utils/openRouter";
 import { upsertJobToVector } from "./rag.service";
 import { readFileContent } from "../utils/fileReader";
@@ -9,7 +7,7 @@ const prisma = new PrismaClient();
 
 export class EvaluationPipeline {
   static async run(evaluationId: number) {
-    // 1. Ambil data evaluation
+    // 1. get data evaluation
     const evaluation = await prisma.evaluation.findUnique({
       where: { id: evaluationId },
       include: {
@@ -40,7 +38,7 @@ export class EvaluationPipeline {
     console.warn(`Missing content - CV: ${hasValidCV}, Project: ${hasValidProject}, Job: ${hasValidJob}`);
     }
 
-    // 2. Buat prompt untuk LLM
+    // 2. create prompt for LLM
     const prompt = `
 You are an expert technical evaluator for recruitment following the official scoring rubric.
 
@@ -132,7 +130,7 @@ Return ONLY valid JSON with this exact schema:
 }
 `;
 
-    // 3. Panggil OpenRouter (LLM)
+    // 3. callback OpenRouter (LLM)
     let result
     try {
         const response = await callChat(
@@ -145,7 +143,7 @@ Return ONLY valid JSON with this exact schema:
         return
     }
 
-    // 4. Simpan hasil scoring ke DB
+    // 4. save result scoring ke DB
     try {
         const update_eval = await prisma.evaluation.update({
             where: { id: evaluationId },
@@ -164,7 +162,7 @@ Return ONLY valid JSON with this exact schema:
         return
     }
 
-    // 5. Opsional: simpan ke Qdrant untuk RAG future retrieval
+    // 5. save to Qdrant for RAG future retrieval
     try {
         const embedding = await createEmbedding(
             process.env.COHERE_MODEL_EMBED as string,

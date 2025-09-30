@@ -26,7 +26,7 @@ export const createCandidate = async (req: Request, res: Response<ApiResponse<Ca
   }
 };
 
-export const listCandidates = async (req: Request, res: Response<ApiResponse<CandidateResponse>>) => {
+export const listCandidates = async (_: Request, res: Response<ApiResponse<CandidateResponse>>) => {
   try {
     const candidates = await candidateService.listCandidates();
     if (candidates.length == 0) {

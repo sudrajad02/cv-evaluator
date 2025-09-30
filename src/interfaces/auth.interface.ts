@@ -1,10 +1,8 @@
-// request
 export interface ILoginRequest {
   username: string; 
   password: string;
 }
 
-// response
 export interface IUserResponse {
   id: string;
   name: string;

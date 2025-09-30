@@ -4,10 +4,7 @@ import { ApiResponse } from "../interfaces/api-response.interface";
 import { JobResponse, JobRequest } from "../interfaces/job.interface";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
-export const createJob = async (
-  req: Request<{}, {}, JobRequest>,
-  res: Response<ApiResponse<JobResponse>>
-) => {
+export const createJob = async (req: Request<{}, {}, JobRequest>, res: Response<ApiResponse<JobResponse>>) => {
   try {
     const job = await jobService.createJob(req.body);
     return successResponse(res, job, "Job created", 201);

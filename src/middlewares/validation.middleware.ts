@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
-import { successResponse, errorResponse } from "../utils/apiResponse";
+import { errorResponse } from "../utils/apiResponse";
 
 export const validate = (validations: any[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {

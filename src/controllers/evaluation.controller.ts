@@ -5,10 +5,7 @@ import { evaluationQueue } from "../queues/evaluation.queue";
 import { EvaluationResponse, EvaluationRequest } from "../interfaces/evaluation.interface";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
-export const createEvaluation = async (
-  req: Request<{}, {}, EvaluationRequest>,
-  res: Response<ApiResponse<EvaluationResponse>>
-) => {
+export const createEvaluation = async (req: Request<{}, {}, EvaluationRequest>,res: Response<ApiResponse<EvaluationResponse>>) => {
   try {
     const evaluation = await evaluationService.createEvaluation(req.body);
     await evaluationQueue.add("evaluate", { evaluationId: evaluation.id });

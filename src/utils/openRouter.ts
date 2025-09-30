@@ -26,13 +26,13 @@ const cohereClient = axios.create({
 });
 
 export async function callChat(model: string, messages: Array<{ role: string; content: string }>, temperature = 0.2) {
+  // send body to api openrouter
   const payload = { model, messages, temperature };
   console.log("[OpenRouter] Sending chat request...", { model, messages });
 
   const res = await client.post("/chat/completions", payload);
 
   console.log("[OpenRouter] Response:", res);
-  // try safe path for various shapes
   const choices = res.data?.choices;
   if (choices && Array.isArray(choices) && choices.length) {
     const msg = choices[0]?.message?.content ?? choices[0]?.text ?? "";
@@ -42,17 +42,15 @@ export async function callChat(model: string, messages: Array<{ role: string; co
   return String(res.data);
 }
 
-export async function createEmbedding(
-  model: string,
-  input: string | string[]
-) {
+export async function createEmbedding(model: string, input: string | string[]) {
+  // send body to api cohere
   console.log("[Cohere] Creating embedding...", {
     model,
     inputPreview: typeof input === "string" ? input.slice(0, 100) : `[${input.length} items]`,
   });
 
   const payload = {
-    model, // contoh: "embed-english-v3.0" atau "embed-multilingual-v3.0"
+    model,
     texts: Array.isArray(input) ? input : [input],
   };
 
