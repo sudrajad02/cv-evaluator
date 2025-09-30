@@ -8,6 +8,10 @@ CV Evaluator project dengan fitur:
 ## **Persyaratan**
 - Node.js v20+
 - Mysql
+- OpenRouter api key
+- Cohere api key
+- Redis
+- Qdrant
 - Docker (opsional)
 
 ## **Instalasi**
@@ -40,4 +44,21 @@ CV Evaluator project dengan fitur:
    docker compose up -d
    ```
 
-## **Endpoint Utama**
+## **Endpoint**
+1. Endpoint Utama
+| Method | Endpoint                     | Deskripsi                                 |
+|--------|------------------------------|-------------------------------------------|
+| POST   | /api/v1/upload               | Create kandidat hanya file CV dan Project |
+| POST   | /api/v1/evaluate             | Evaluasi dari CV ke LLM                   |
+| GET    | /api/v1/evaluate/result/:id  | Hasil dari evaluasi                       |
+
+2. Endpoint Tambahan
+| Method | Endpoint               | Deskripsi                    |
+|--------|------------------------|------------------------------|
+| POST   | /api/v1/auth/login     | Login user                   |
+| POST   | /api/v1/jobs           | Tambah job baru              |
+| GET    | /api/v1/jobs           | Ambil data semua job         |
+| GET    | /api/v1/jobs/:id       | Ambil data job by id         |
+| POST   | /api/v1/candidates     | Tambah kandidat baru lengkap |
+| GET    | /api/v1/candidates     | Ambil data semua kandidat    |
+| GET    | /api/v1/candidates/:id | Ambil data kandidat by id    |
