@@ -15,8 +15,8 @@ CREATE TABLE `User` (
 -- CreateTable
 CREATE TABLE `JobVacancy` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `title` VARCHAR(191) NOT NULL,
-    `description` VARCHAR(191) NOT NULL,
+    `title` TEXT NOT NULL,
+    `description` TEXT NOT NULL,
     `studyCaseBrief` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NULL,
@@ -44,10 +44,10 @@ CREATE TABLE `Evaluation` (
     `jobId` INTEGER NOT NULL,
     `status` ENUM('QUEUED', 'PROCESSING', 'COMPLETED') NOT NULL DEFAULT 'QUEUED',
     `cvMatchRate` DOUBLE NULL,
-    `cvFeedback` VARCHAR(191) NULL,
+    `cvFeedback` TEXT NULL,
     `projectScore` DOUBLE NULL,
-    `projectFeedback` VARCHAR(191) NULL,
-    `overallSummary` VARCHAR(191) NULL,
+    `projectFeedback` TEXT NULL,
+    `overallSummary` TEXT NULL,
     `createdAt` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NULL,
 
